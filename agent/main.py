@@ -1,20 +1,24 @@
 import csv
+import os
 
-TREE_FILE = "../tree/reflection-tree.tsv"
+# -------- Load Tree --------
+BASE_DIR = os.path.dirname(__file__)
+TREE_FILE = os.path.join(BASE_DIR, "..", "tree", "reflection-tree.tsv")
 
-# Load tree
 nodes = {}
 children = {}
 
 with open(TREE_FILE, newline='', encoding='utf-8') as f:
     reader = csv.DictReader(f, delimiter='\t')
     for row in reader:
-        nodes[row['id']] = row
-        parent = row['parentId']
-        if parent:
-            children.setdefault(parent, []).append(row['id'])
+        node_id = row['id'].strip()
+        nodes[node_id] = row
 
-# State
+        parent = row['parentId'].strip()
+        if parent:
+            children.setdefault(parent, []).append(node_id)
+
+# -------- State --------
 state = {
     "answers": {},
     "axis1": {"internal": 0, "external": 0},
@@ -22,6 +26,7 @@ state = {
     "axis3": {"self": 0, "team": 0, "other": 0}
 }
 
+# -------- Helpers --------
 def apply_signal(signal):
     if not signal:
         return
@@ -35,79 +40,103 @@ def get_dominant(axis):
     return max(state[axis], key=state[axis].get)
 
 def interpolate(text):
-    for key, val in state["answers"].items():
-        text = text.replace(f"{{{key}.answer}}", val)
-    text = text.replace("{axis1.dominant}", get_dominant("axis1"))
-    text = text.replace("{axis2.dominant}", get_dominant("axis2"))
-    text = text.replace("{axis3.dominant}", get_dominant("axis3"))
+    # Replace answers
+    for k, v in state["answers"].items():
+        text = text.replace(f"{{{k}.answer}}", v)
+
+    # Replace dominant axis values
+    for axis in ["axis1", "axis2", "axis3"]:
+        text = text.replace(f"{{{axis}.dominant}}", get_dominant(axis))
+
     return text
 
-def run():
-    current = "START"
+def evaluate_condition(cond):
+    cond = cond.strip()
 
-    while True:
-        node = nodes[current]
-        text = interpolate(node["text"])
-        print("\n" + text)
+    # answer-based condition
+    if cond.startswith("answer="):
+        values = cond.split("=")[1].split("|")
+        last_answer = list(state["answers"].values())[-1]
+        return last_answer in values
 
-        apply_signal(node["signal"])
+    # axis-based condition
+    if ">=" in cond:
+        left, val = cond.split(">=")
+        axis, key = left.split(".")
+        return state[axis][key] >= int(val)
 
-        if node["type"] == "end":
+    return False
+
+def handle_decision(options):
+    rules = options.split(";")
+    for rule in rules:
+        if ":" not in rule:
+            continue
+        cond, target = rule.split(":")
+        if evaluate_condition(cond):
+            return target.strip()
+    return None
+
+# -------- Engine --------
+current = "START"
+
+while True:
+    node = nodes[current]
+    node_type = node["type"].strip()
+    text = node["text"].strip()
+    options = node["options"].strip()
+    target = node["target"].strip()
+    signal = node["signal"].strip()
+
+    # Apply signal
+    apply_signal(signal)
+
+    # Print text
+    if text:
+        print("\n" + interpolate(text))
+
+    # Handle node types
+    if node_type == "start" or node_type == "bridge":
+        current = target if target else children.get(current, [None])[0]
+
+    elif node_type == "question":
+        opts = options.split("|")
+        for i, opt in enumerate(opts, 1):
+            print(f"{i}. {opt}")
+
+        while True:
+            try:
+                choice = int(input("Choose option: "))
+                if 1 <= choice <= len(opts):
+                    answer = opts[choice - 1]
+                    state["answers"][current] = answer
+                    break
+            except:
+                pass
+            print("Invalid input. Try again.")
+
+        current = children[current][0]
+
+    elif node_type == "decision":
+        next_node = handle_decision(options)
+        if not next_node:
+            print("Decision error. No valid path.")
             break
+        current = next_node
 
-        elif node["type"] == "question":
-            options = node["options"].split("|")
-            for i, opt in enumerate(options, 1):
-                print(f"{i}. {opt}")
-            choice = int(input("Choose: ")) - 1
-            answer = options[choice]
-            state["answers"][current] = answer
+    elif node_type == "reflection":
+        input("\n(Press Enter to continue)")
+        current = children.get(current, [target])[0] if not target else target
 
-            # move to next child
-            current = children[current][0]
+    elif node_type == "summary":
+        print("\n--- Summary ---")
+        print(interpolate(text))
+        current = children.get(current, [target])[0] if not target else target
 
-        elif node["type"] == "decision":
-            rules = node["options"].split(";")
-            last_answer = list(state["answers"].values())[-1]
+    elif node_type == "end":
+        print("\n" + text)
+        break
 
-            moved = False
-            for rule in rules:
-                cond, target = rule.split(":")
-                if cond.startswith("answer="):
-                    values = cond.replace("answer=", "").split("|")
-                    if last_answer in values:
-                        current = target
-                        moved = True
-                        break
-                else:
-                    # simple condition handling
-                    if "axis1.internal>=3" in cond and state["axis1"]["internal"] >= 3:
-                        current = target
-                        moved = True
-                        break
-                    if "axis1.external>=3" in cond and state["axis1"]["external"] >= 3:
-                        current = target
-                        moved = True
-                        break
-                    if "axis1.internal>=1" in cond and state["axis1"]["internal"] >= 1:
-                        current = target
-                        moved = True
-                        break
-
-            if not moved:
-                current = list(children[node["parentId"]])[0]
-
-        elif node["type"] in ["reflection", "bridge"]:
-            input("\nPress Enter to continue...")
-            current = node["target"] if node["target"] else children[current][0]
-
-        elif node["type"] == "summary":
-            print("\n--- Summary ---")
-            print(text)
-            current = children[current][0]
-
-        else:
-            current = children[current][0]
-
-if __name__ == "__main__":
-    run()
+    else:
+        print(f"Unknown node type: {node_type}")
+        break
