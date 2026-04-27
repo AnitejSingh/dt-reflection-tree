@@ -1,6 +1,6 @@
 import csv
 
-TREE_FILE = "tree/reflection-tree.tsv"
+TREE_FILE = "../tree/reflection-tree.tsv"
 
 # Load tree
 nodes = {}
