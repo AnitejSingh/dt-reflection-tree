@@ -39,4 +39,4 @@ A3_R_TEAM	A3_D1	reflection	You connected your work to your team’s experience. 
 A3_R_COLLEAGUE	A3_D1	reflection	You recognized someone else’s experience in your day. That’s where work becomes relational, not just task-driven.			axis3:other
 A3_R_SYSTEM	A3_D1	reflection	You stepped back to see the broader impact. That perspective often brings clarity and meaning beyond immediate effort.			axis3:other
 SUMMARY	A3_R_SELF	summary	Today you leaned {axis1.dominant} in how you handled control, {axis2.dominant} in contribution, and your focus was {axis3.dominant}. These patterns shape both outcomes and how your work feels over time.			
-END	SUMMARY	end	That’s it for today. Carry this forward into tomorrow.					
+END	SUMMARY	end	That’s it for today. Carry this forward into tomorrow.			
