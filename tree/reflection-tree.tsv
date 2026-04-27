@@ -1,0 +1,76 @@
+id	parentId	type	text	options	target	signal
+
+START	null	start	Good evening. Let’s take a few minutes to look at your day — clearly, without overthinking.			
+
+A1_OPEN	START	question	Which word best describes your day?	Productive|Steady|Frustrating|Draining		
+
+A1_D1	A1_OPEN	decision		answer=Productive|Steady:A1_Q1_HIGH;answer=Frustrating|Draining:A1_Q1_LOW		
+
+A1_Q1_HIGH	A1_D1	question	When things worked today, what made the difference?	I prepared or planned ahead|I adjusted as things evolved|Others stepped in strongly|It mostly fell into place		axis1:internal
+
+A1_Q1_LOW	A1_D1	question	When things didn’t go as planned, what was your first reaction?	Look for what I could still influence|Wait for direction or help|Push through without changing approach|Feel stuck and unsure what to do		axis1:external
+
+A1_Q2_HIGH	A1_Q1_HIGH	question	When something became challenging, what did you actually do?	Changed approach quickly|Stayed consistent and worked through it|Relied on others to resolve it|Pulled back from it		axis1:internal
+
+A1_Q2_LOW	A1_Q1_LOW	question	Looking back, how did you deal with the difficulty?	Adjusted where possible|Waited for things to change|Pushed through without adapting|Avoided the situation		axis1:external
+
+A1_Q3_HIGH	A1_Q2_HIGH	question	In those moments, how aware were you of your choices?	I was actively choosing my response|I noticed but didn’t always act on it|I reacted without thinking much|I didn’t feel I had a choice		axis1:internal
+
+A1_Q3_LOW	A1_Q2_LOW	question	In those moments, how aware were you of your choices?	I saw where I had control|I noticed but didn’t act|I mostly reacted|I felt I had no real choice		axis1:external
+
+A1_D2	A1_Q3_HIGH	decision		axis1.internal>=3:A1_R_INT_STRONG;axis1.internal=2:A1_R_INT_MID;axis1.external>=1:A1_R_EXT_HINT		
+A1_D2B	A1_Q3_LOW	decision		axis1.external>=3:A1_R_EXT_STRONG;axis1.internal>=1:A1_R_INT_HINT		
+
+A1_R_INT_STRONG	A1_D2	reflection	You consistently acted with awareness of your choices. That’s what agency looks like in practice — not control over everything, but ownership over your response.		axis1:internal
+
+A1_R_INT_MID	A1_D2	reflection	You had moments of deliberate choice, even if not throughout. That’s usually where change starts — noticing you can respond differently.		axis1:internal
+
+A1_R_EXT_STRONG	A1_D2B	reflection	The day felt largely driven by external factors. That’s real — and within that, there were still moments where you responded. That’s where your leverage is.		axis1:external
+
+A1_R_EXT_HINT	A1_D2	reflection	Even on a smoother day, some moments were left to circumstance. Noticing where you step in versus step back sharpens your control.		axis1:external
+
+A1_R_INT_HINT	A1_D2B	reflection	Even in a difficult day, you identified places where you could act. That awareness is often the first step toward regaining control.		axis1:internal
+
+BRIDGE_1_2	A1_R_INT_STRONG	bridge	You’ve looked at how you responded. Now shift the lens — what did you contribute to the system today?		A2_OPEN	
+BRIDGE_1_2B	A1_R_INT_MID	bridge	From how you handled things, shift to what you gave into the system.		A2_OPEN	
+BRIDGE_1_2C	A1_R_EXT_STRONG	bridge	Even when things felt outside your control, you still acted. Now consider — what did you contribute?		A2_OPEN	
+BRIDGE_1_2D	A1_R_EXT_HINT	bridge	Now move from handling situations to contributing to them.		A2_OPEN	
+BRIDGE_1_2E	A1_R_INT_HINT	bridge	From your responses, shift to your contributions.		A2_OPEN	
+
+A2_OPEN	null	question	Think of one interaction today. What best describes your role?	I stepped in to help beyond my role|I completed what was expected|I felt I deserved more recognition|I was frustrated others didn’t do enough		
+
+A2_Q1	A2_OPEN	question	In that moment, what were you focused on?	Being useful|Finishing my work|Getting acknowledgment|Expecting others to improve		
+
+A2_Q2	A2_Q1	question	If you replay that moment, what stands out now?	I could have contributed even more|I did what was required|I still feel I deserved more|Others should have done better		
+
+A2_D1	A2_Q2	decision		answer=Being useful|I could have contributed even more:A2_R_CONTRIB_STRONG;answer=Finishing my work|I did what was required:A2_R_CONTRIB_BASE;answer=Getting acknowledgment|Expecting others to improve|I still feel I deserved more|Others should have done better:A2_R_ENTITLE		
+
+A2_R_CONTRIB_STRONG	A2_D1	reflection	You leaned strongly toward contribution — not just doing your part, but looking for ways to add value. That’s how systems evolve.		axis2:contribution
+
+A2_R_CONTRIB_BASE	A2_D1	reflection	You fulfilled your responsibilities. That keeps things stable — and often there’s an opportunity just beyond that baseline.		axis2:contribution
+
+A2_R_ENTITLE	A2_D1	reflection	Your attention stayed on what should have happened or what you should have received. That’s a natural frame — but it limits where you create change.		axis2:entitlement
+
+BRIDGE_2_3	A2_R_CONTRIB_STRONG	bridge	Now widen the lens — beyond actions, to impact. Who was affected by your day?		A3_OPEN	
+BRIDGE_2_3B	A2_R_CONTRIB_BASE	bridge	Now widen the lens — beyond tasks, to impact. Who was affected?		A3_OPEN	
+BRIDGE_2_3C	A2_R_ENTITLE	bridge	Now widen the lens — beyond expectations, to impact. Who was affected?		A3_OPEN	
+
+A3_OPEN	null	question	When you think about today’s most significant moment, who comes to mind first?	Only my work|My team|A specific colleague|The customer or end user		
+
+A3_Q1	A3_OPEN	question	In that moment, how far did your thinking extend?	Only my responsibilities|Team impact|Helping someone specific|Final outcome or user impact		
+
+A3_Q2	A3_Q1	question	Looking back, what perspective feels most accurate now?	It was mainly about my own work|It affected the team more than I thought|Someone else’s experience mattered|The larger outcome mattered more than I realized		
+
+A3_D1	A3_Q2	decision		answer=Only my responsibilities|It was mainly about my own work:A3_R_SELF;answer=Team impact|It affected the team more than I thought:A3_R_TEAM;answer=Helping someone specific|Someone else’s experience mattered:A3_R_COLLEAGUE;answer=Final outcome or user impact|The larger outcome mattered more than I realized:A3_R_SYSTEM		
+
+A3_R_SELF	A3_D1	reflection	Your focus stayed close to your own responsibilities. That’s where pressure concentrates — and sometimes why the day feels heavier.		axis3:self
+
+A3_R_TEAM	A3_D1	reflection	You connected your work to your team’s experience. That shift distributes pressure and builds shared momentum.		axis3:team
+
+A3_R_COLLEAGUE	A3_D1	reflection	You recognized someone else’s experience in your day. That’s where work becomes relational, not just task-driven.		axis3:other
+
+A3_R_SYSTEM	A3_D1	reflection	You stepped back to see the broader impact. That perspective often brings clarity and meaning beyond immediate effort.		axis3:other
+
+SUMMARY	null	summary	Today you leaned {axis1.dominant} in how you handled control, {axis2.dominant} in contribution, and your focus was {axis3.dominant}. These patterns shape both outcomes and how your work feels over time.			
+
+END	SUMMARY	end	That’s it for today. Let's carry this forward into tomorrow.								
